@@ -11,6 +11,8 @@ function App() {
 	const [typingDisplay, setTypingDisplay] = useState("");
 
 	useEffect(() => {
+		console.log("bruh");
+
 		socket.emit("findAllMessages", (response) => {
 			setMessages([...response]);
 		});
@@ -26,7 +28,7 @@ function App() {
 				setTypingDisplay("");
 			}
 		});
-	}, []);
+	}, [messageText]);
 
 	const join = () => {
 		socket.emit("join", { name: name }, () => {
@@ -49,17 +51,52 @@ function App() {
 	};
 
 	return (
-		<div className="chat">
-			<div className="chat-container">
-				<div className="messages-container">
+		<main>
+			{!joined ? (
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						join();
+					}}
+				>
+					<label htmlFor="name">Whats your name?</label>
+					<input
+						type="text"
+						name="name"
+						id="name"
+						onChange={(e) => setName(e.target.value)}
+					/>
+					<button type="submit">Send</button>
+				</form>
+			) : (
+				<div>
 					{messages.map((message) => (
-						<h3 key={message}>
+						<h3 key={message.text}>
 							[{message.name}]: {message.text}
 						</h3>
 					))}
+					{typingDisplay}
+					<form
+						onSubmit={(e) => {
+							e.preventDefault();
+							sendMessage();
+						}}
+					>
+						<label>Message:</label>
+						<input
+							onChange={(e) => {
+								if (e.target.value !== "") {
+									emitTyping();
+								}
+								setMessageText(e.target.value);
+							}}
+							value={messageText}
+						/>
+						<button type="submit">Send</button>
+					</form>
 				</div>
-			</div>
-		</div>
+			)}
+		</main>
 	);
 }
 
