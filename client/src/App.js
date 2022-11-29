@@ -5,24 +5,48 @@ const socket = io("http://localhost:3001");
 
 function App() {
 	const [messages, setMessages] = useState([]);
+	const [messageText, setMessageText] = useState("");
+	const [joined, setJoined] = useState(false);
+	const [name, setName] = useState("");
+	const [typingDisplay, setTypingDisplay] = useState("");
 
 	useEffect(() => {
 		socket.emit("findAllMessages", (response) => {
 			setMessages([...response]);
 		});
 
-		// socket.on("message", (message) => {
-		// 	setMessages([...messages, message]);
-		// });
+		socket.on("message", (message) => {
+			setMessages([...messages, message]);
+		});
 
-		// socket.on("typing", ({ name, isTyping }) => {
-		// 	if (isTyping) {
-		// 		setTypingDisplay(`${name} is typing...`);
-		// 	} else {
-		// 		setTypingDisplay("");
-		// 	}
-		// });
+		socket.on("typing", ({ name, isTyping }) => {
+			if (isTyping) {
+				setTypingDisplay(`${name} is typing...`);
+			} else {
+				setTypingDisplay("");
+			}
+		});
 	}, []);
+
+	const join = () => {
+		socket.emit("join", { name: name }, () => {
+			setJoined(true);
+		});
+	};
+
+	const sendMessage = () => {
+		socket.emit("createMessage", { text: messageText }, () => {
+			setMessageText("");
+		});
+	};
+
+	let timeout;
+	const emitTyping = () => {
+		socket.emit("typing", { isTyping: true });
+		timeout = setTimeout(() => {
+			socket.emit("typing", { isTyping: false });
+		}, 2000);
+	};
 
 	return (
 		<div className="chat">
