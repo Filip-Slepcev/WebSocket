@@ -7,30 +7,32 @@ function App() {
 	const [messages, setMessages] = useState([]);
 
 	useEffect(() => {
-		socket.emit("findAllMessages", {}, (response) => {
-			console.log(response);
-			setMessages(response);
+		socket.emit("findAllMessages", (response) => {
+			setMessages([...response]);
 		});
 
-		return () => {
-			//   socket.off('connect');
-			//   socket.off('disconnect');
-			//   socket.off('pong');
-		};
+		// socket.on("message", (message) => {
+		// 	setMessages([...messages, message]);
+		// });
+
+		// socket.on("typing", ({ name, isTyping }) => {
+		// 	if (isTyping) {
+		// 		setTypingDisplay(`${name} is typing...`);
+		// 	} else {
+		// 		setTypingDisplay("");
+		// 	}
+		// });
 	}, []);
 
 	return (
 		<div className="chat">
 			<div className="chat-container">
-				<h3>{messages}</h3>
 				<div className="messages-container">
-					{messages.map((message) => {
-						return (
-							<h5>
-								[{message.name}]: {message.text}
-							</h5>
-						);
-					})}
+					{messages.map((message) => (
+						<h3 key={message}>
+							[{message.name}]: {message.text}
+						</h3>
+					))}
 				</div>
 			</div>
 		</div>
