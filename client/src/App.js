@@ -10,15 +10,13 @@ function App() {
 	const [name, setName] = useState("");
 	const [typingDisplay, setTypingDisplay] = useState("");
 
-	useEffect(() => {
-		console.log("bruh");
+	socket.on("message", (message) => {
+		setMessages([...messages, message]);
+	});
 
+	useEffect(() => {
 		socket.emit("findAllMessages", (response) => {
 			setMessages([...response]);
-		});
-
-		socket.on("message", (message) => {
-			setMessages([...messages, message]);
 		});
 
 		socket.on("typing", ({ name, isTyping }) => {
@@ -28,7 +26,11 @@ function App() {
 				setTypingDisplay("");
 			}
 		});
-	}, [messageText]);
+
+		return () => {
+			socket.off("typing");
+		};
+	}, []);
 
 	const join = () => {
 		socket.emit("join", { name: name }, () => {
@@ -38,16 +40,16 @@ function App() {
 
 	const sendMessage = () => {
 		socket.emit("createMessage", { text: messageText }, () => {
+			socket.emit("typing", { isTyping: false });
 			setMessageText("");
 		});
 	};
 
-	let timeout;
 	const emitTyping = () => {
 		socket.emit("typing", { isTyping: true });
-		timeout = setTimeout(() => {
+		setTimeout(() => {
 			socket.emit("typing", { isTyping: false });
-		}, 2000);
+		}, 1000);
 	};
 
 	return (
